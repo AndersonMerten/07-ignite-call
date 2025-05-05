@@ -11,6 +11,7 @@ import { api } from "@/lib/axios";
 import { converTimeStringToMinutes } from "@/utils/convert-time-string-to-minutes";
 import { getWeekDays } from "@/utils/get-week-days";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/router";
 import { ArrowRight } from "phosphor-react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -87,6 +88,8 @@ export default function TimeIntervals() {
     },
   });
 
+  const router = useRouter();
+
   const weekDays = getWeekDays();
   const intervals = watch("intervals");
 
@@ -99,6 +102,7 @@ export default function TimeIntervals() {
     intervals,
   }: TimeIntervalsFormOutput) {
     await api.post("/users/time-intervals", { intervals });
+    await router.push("/register/update-profile");
   }
 
   return (

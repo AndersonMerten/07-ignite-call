@@ -1,7 +1,7 @@
+import { prisma } from "@/lib/prisma";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
-import { prisma } from "../../../lib/prisma";
 import { buildNextAuthOptions } from "../auth/[...nextauth].api";
 
 const timeIntervalsBodySchema = z.object({
@@ -21,7 +21,6 @@ export default async function handler(
   if (req.method !== "POST") {
     return res.status(405).end();
   }
-
   const session = await getServerSession(
     req,
     res,
