@@ -35,9 +35,14 @@ export default async function handle(
     req.body
   );
 
-  const schedulingDate = dayjs(date).startOf("hour");
+  console.log("Date received from frontend (local time):", date);
 
-  if (schedulingDate.isBefore(new Date())) {
+  // Interpreta o horário como local e converte para UTC
+  const schedulingDate = dayjs(date).local().utc().startOf("hour");
+
+  console.log("Scheduling Date (processed UTC):", schedulingDate.toISOString());
+
+  if (schedulingDate.isBefore(dayjs().utc())) {
     return res.status(400).json({
       message: "date is in the past.",
     });
@@ -66,34 +71,5 @@ export default async function handle(
     },
   });
 
-  const calendar = google.calendar({
-    version: "v3",
-    auth: await getgoogleOAuthToken(user.id),
-  });
-
-  await calendar.events.insert({
-    calendarId: "primary",
-    conferenceDataVersion: 1,
-    requestBody: {
-      summary: `Ignite Call: ${name}`,
-      description: observations,
-      start: {
-        dateTime: schedulingDate.format(),
-      },
-      end: {
-        dateTime: schedulingDate.add(1, "hour").format(),
-      },
-      attendees: [{ email, displayName: name }],
-      conferenceData: {
-        createRequest: {
-          requestId: scheduling.id,
-          conferenceSolutionKey: {
-            type: "hangoutsMeet",
-          },
-        },
-      },
-    },
-  });
-
-  return res.status(201).end();
+  return res.status(201).json(scheduling);
 }

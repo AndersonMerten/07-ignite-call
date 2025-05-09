@@ -76,28 +76,29 @@ export default async function handle(
       date: {
         gte: referenceDate
           .set("hour", startHour)
-          .add(timezoneOffsetinHours, "hours")
+          .utc() // Ajusta para UTC
           .toDate(),
         lte: referenceDate
           .set("hour", endHour)
-          .add(timezoneOffsetinHours, "hours")
+          .utc() // Ajusta para UTC
           .toDate(),
       },
     },
   });
 
+  // Ajusta os horários bloqueados para o horário local
+  const blockedTimesInLocal = blockedTimes.map((blockedTime) => {
+    return dayjs(blockedTime.date).local().hour(); // Converte para o horário local
+  });
+
   const availableTimes = possibleTimes.filter((time) => {
-    const isTimeblocked = blockedTimes.some(
-      (blockedTimes) =>
-        blockedTimes.date.getUTCHours() - timezoneOffsetinHours === time
-    );
+    const isTimeBlocked = blockedTimesInLocal.includes(time); // Compara com o horário local
 
     const isTimeInPast = referenceDate
       .set("hour", time)
-      .subtract(referenceDateTimeZoneOffsetInHours, "hours")
-      .isBefore(dayjs().utc().subtract(timezoneOffsetinHours, "hours"));
+      .isBefore(dayjs());
 
-    return !isTimeblocked && !isTimeInPast;
+    return !isTimeBlocked && !isTimeInPast;
   });
 
   return res.json({ possibleTimes, availableTimes });

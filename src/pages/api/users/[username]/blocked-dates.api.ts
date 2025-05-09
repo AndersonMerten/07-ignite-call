@@ -43,31 +43,30 @@ export default async function handler(
   });
 
   const blockedDatesRaw: Array<{ date: number }> = await prisma.$queryRaw`
-    SELECT
-      EXTRACT(DAY FROM S.DATE) AS date,
-      COUNT(S.date),
-      ((UTI.time_end_in_minutes - UTI.time_start_in_minutes) / 60)
+  SELECT
+    EXTRACT(DAY FROM S.DATE) AS date,
+    COUNT(S.date),
+    ((UTI.time_end_in_minutes - UTI.time_start_in_minutes) / 60)
 
-    FROM schedulings S
+  FROM schedulings S
 
-    LEFT JOIN user_time_intervals UTI
-      ON UTI.week_day = EXTRACT(DOW FROM S.date + INTERVAL '1 day')
+  LEFT JOIN user_time_intervals UTI
+    ON UTI.week_day = EXTRACT(DOW FROM S.date)
 
-    WHERE S.user_id = ${user.id}
-      AND EXTRACT(YEAR FROM S.date) = ${year}::int
-      AND EXTRACT(MONTH FROM S.date) = ${month}::int
+  WHERE S.user_id = ${user.id}
+    AND EXTRACT(YEAR FROM S.date AT TIME ZONE 'UTC') = ${year}::int
+    AND EXTRACT(MONTH FROM S.date AT TIME ZONE 'UTC') = ${month}::int
 
-    GROUP BY EXTRACT(DAY FROM S.DATE),
-      ((UTI.time_end_in_minutes - UTI.time_start_in_minutes) / 60)
+  GROUP BY EXTRACT(DAY FROM S.DATE),
+    ((UTI.time_end_in_minutes - UTI.time_start_in_minutes) / 60)
 
-    HAVING
-      COUNT(S.date) >= ((UTI.time_end_in_minutes - UTI.time_start_in_minutes) / 60);
+  HAVING
+    COUNT(S.date) >= ((UTI.time_end_in_minutes - UTI.time_start_in_minutes) / 60);
 `;
 
-  const blockedDates = blockedDatesRaw.map((item) => {
-    console.log(item.date);
-    return Number(item.date);
-  });
+const blockedDates = blockedDatesRaw.map((item) => {
+  return Number(item.date);
+});
   console.log("blockedDatesRaw", blockedDates);
 
   return res.json({ blockedWeekDays, blockedDates });

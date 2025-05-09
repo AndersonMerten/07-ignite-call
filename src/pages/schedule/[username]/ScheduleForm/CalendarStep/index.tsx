@@ -2,6 +2,7 @@ import { Calendar } from "@/components/Calendar";
 import { api } from "@/lib/axios";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc"; // Import the UTC plugin
 import { useRouter } from "next/router";
 import { useState } from "react";
 import {
@@ -11,6 +12,9 @@ import {
   TimePickerItem,
   TimePickerList,
 } from "./styles";
+
+// Register the UTC plugin with dayjs
+dayjs.extend(utc);
 
 interface Availability {
   possibleTimes: number[];
@@ -34,8 +38,12 @@ export function CalendarStep({ onSelectDateTime }: CalendarStepProps) {
   const { data: availability } = useQuery<Availability>({
     queryKey: ["availability", selectedDateWithoutTime],
     queryFn: async () => {
+      const timezoneOffsetInHours = new Date().getTimezoneOffset() / 60;
+
+      console.log(`Timezone offset sent to the backend: ${timezoneOffsetInHours} hours`);
+
       const { data } = await api.get(
-        `/users/${username}/avaliability?date=${selectedDateWithoutTime}&timezoneOffset=${selectedDate ? selectedDate.getTimezoneOffset() : 0}`
+        `/users/${username}/avaliability?date=${selectedDateWithoutTime}&timezoneOffset=${timezoneOffsetInHours}`
       );
 
       return data;
@@ -46,10 +54,11 @@ export function CalendarStep({ onSelectDateTime }: CalendarStepProps) {
   function handleSelectTime(hour: number) {
     const dateWithTime = dayjs(selectedDate)
       .set("hour", hour)
-      .startOf("hour")
-      .toDate();
+      .startOf("hour") // Garante que o horário esteja arredondado
+      .format(); // Converte para string ISO no horário local
 
-    onSelectDateTime(dateWithTime);
+
+    onSelectDateTime(new Date(dateWithTime));
   }
 
   const isDateSelected = !!selectedDate;
