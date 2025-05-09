@@ -1,9 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 import { NextApiRequest, NextApiResponse } from "next";
 
 dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export default async function handle(
   req: NextApiRequest,
@@ -86,17 +88,19 @@ export default async function handle(
     },
   });
 
-  // Ajusta os horários bloqueados para o horário local no frontend
-  const blockedTimesInUTC = blockedTimes.map((blockedTime) => {
-    return dayjs(blockedTime.date).utc().hour(); // Trabalha em UTC
+  // Converte os horários bloqueados para o horário local
+  const blockedTimesInLocal = blockedTimes.map((blockedTime) => {
+    return dayjs(blockedTime.date)
+      .tz("America/Sao_Paulo") // Converte explicitamente para o fuso horário desejado
+      .hour();
   });
 
   const availableTimes = possibleTimes.filter((time) => {
-    const isTimeBlocked = blockedTimesInUTC.includes(time); // Compara com UTC
+    const isTimeBlocked = blockedTimesInLocal.includes(time); // Compara com o horário local
 
     const isTimeInPast = referenceDate
       .set("hour", time)
-      .isBefore(dayjs().utc()); // Compara com UTC
+      .isBefore(dayjs().tz("America/Sao_Paulo")); // Compara com o horário local
 
     return !isTimeBlocked && !isTimeInPast;
   });

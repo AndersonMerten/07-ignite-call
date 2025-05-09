@@ -71,5 +71,24 @@ export default async function handle(
     },
   });
 
+  const auth = await getgoogleOAuthToken(user.id); // Obtem o token de autenticação
+
+  const calendar = google.calendar({ version: "v3", auth });
+
+  await calendar.events.insert({
+    calendarId: "primary",
+    requestBody: {
+      summary: `Agendamento: ${name}`,
+      description: observations,
+      start: {
+        dateTime: schedulingDate.toISOString(), // Envia o horário em UTC
+      },
+      end: {
+        dateTime: schedulingDate.add(1, "hour").toISOString(), // Define a duração do evento como 1 hora
+      },
+      attendees: [{ email }],
+    },
+  });
+
   return res.status(201).json(scheduling);
 }
