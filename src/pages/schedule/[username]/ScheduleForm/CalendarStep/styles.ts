@@ -16,7 +16,6 @@ export const Container = styled(Box, {
         },
       },
       false: {
-        width: 540,
         gridTemplateColumns: "1fr",
       },
     },
@@ -54,6 +53,10 @@ export const TimePickerList = styled("div", {
   display: "grid",
   gridTemplateColumns: "1fr",
   gap: "$2",
+
+  "@media (max-width: 900px)": {
+    gridTemplateColumns: "2fr",
+  },
 });
 
 export const TimePickerItem = styled("button", {
