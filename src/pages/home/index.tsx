@@ -19,7 +19,7 @@ export default function Home() {
             Agendamento descomplicado
           </Heading>
           <Text size="xl">
-            Conecte seu calendário e permita que as pessoas marquem agendamntos
+            Conecte seu calendário e permita que as pessoas marquem agendamentos
             no seu tempo livre.
           </Text>
           <ClaimUsernameForm />
